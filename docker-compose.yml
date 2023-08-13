@@ -25,9 +25,10 @@ services:
         ports:
             - "3000:3000"
         environment:
-            CONFIG_DB_ADMINUSERNAME: 'admin'
-            CONFIG_DB_ADMINPASSWORD: 'pass'
-            CONFIG_DB_URL: mongodb://admin:pass@db:27017/
+            DB_HOST: db
+            DB_USER: "admin"
+            DB_PASSWORD: "pass"
+            DB_PORT: "27017"
         networks:
             - app-network
 networks:

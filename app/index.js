@@ -1,11 +1,13 @@
 const express = require('express');
 
+require('./database/mongo');
+
+const charactersRoutes = require('./routes/characters');
+
 const app = express();
 const port = 3000;
 
-app.get('/', (req, res) => {
-  res.send('Hello World!');
-});
+app.use('/v1/characters', charactersRoutes);
 
 app.listen(port, () => {
   console.log('Server runing on port 3000');
