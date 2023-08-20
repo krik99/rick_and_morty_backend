@@ -27,15 +27,27 @@ function charactersApplyShortFormat(articles) {
 }
 
 router.get('/', async (req, res) => {
-  const { page = 1, limit = 10 } = req.query;
+  const { page = 1, limit = 10, id } = req.query;
+  let charactersData = null;
+  let count = 0;
   try {
-    const charactersData = await CharacterModel.find()
-      .select(['-author', '-content', '-comments'])
-      .limit(limit * 1)
-      .skip((page - 1) * limit)
-      .sort({ published: -1 })
-      .lean();
-    const count = await CharacterModel.countDocuments();
+    if (id) {
+      const ids = id.split(',');
+      charactersData = await CharacterModel.find()
+        .where('_id').in(ids)
+        .select(['-author', '-content', '-comments'])
+        .sort({ published: -1 })
+        .lean();
+      count = charactersData.length;
+    } else {
+      charactersData = await CharacterModel.find()
+        .select(['-author', '-content', '-comments'])
+        .limit(limit * 1)
+        .skip((page - 1) * limit)
+        .sort({ published: -1 })
+        .lean();
+      count = await CharacterModel.countDocuments();
+    }
 
     const characters = charactersApplyShortFormat(charactersData);
     return res.status(200).json({
