@@ -12,3 +12,6 @@ Go in root project directory and execute in terminal:
 docker-compose build
 docker-compose up
 ```
+
+## Routes
+Place static files in **/static** dir to share in articles in path /storage/img/<img.png>

@@ -6,12 +6,23 @@ const bodyParser = require('body-parser');
 const jsonParser = bodyParser.json();
 
 const CharacterModel = require('../models/character');
+const { imgPath } = require('../database/filestorage');
+
+function fixImgPath(realPath) {
+  return `${imgPath}/${realPath}`;
+}
 
 router.get('/', async (req, res) => {
   try {
-    const characters = await CharacterModel.find()
+    const charactersData = await CharacterModel.find()
       .select('-author')
-      .sort({ published: -1 });
+      .sort({ published: -1 })
+      .lean();
+    const characters = charactersData.map((el) => {
+      const character = { ...el };
+      character.img = fixImgPath(character.img);
+      return character;
+    });
     return res.status(200).json({ ...characters });
   } catch (error) {
     return res.status(500).json({ message: error.message });
@@ -25,6 +36,7 @@ router.get('/:id', async (req, res) => {
     if (!character) {
       return res.status(404).json({ message: 'Character not found' });
     }
+    character.img = fixImgPath(character.img);
     return res.status(200).json(character);
   } catch (error) {
     return res.status(500).json({ message: error.message });
@@ -33,6 +45,7 @@ router.get('/:id', async (req, res) => {
 
 router.post('/', jsonParser, async (req, res) => {
   const character = new CharacterModel({ ...req.body });
+
   try {
     const newCharacter = await character.save();
     return res.status(200).json(newCharacter);

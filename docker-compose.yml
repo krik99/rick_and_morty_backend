@@ -20,6 +20,9 @@ services:
         # command: npm run serve
         volumes:
             - ${PWD}/app:/usr/app
+            - type: bind
+              source: ${PWD}/static
+              target: /usr/static
         links:
             - "db"
         ports:
