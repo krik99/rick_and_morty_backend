@@ -6,6 +6,7 @@ const bodyParser = require('body-parser');
 const jsonParser = bodyParser.json();
 
 const CharacterModel = require('../models/character');
+const CommentModel = require('../models/comment');
 const { imgPath } = require('../database/filestorage');
 
 function fixImgPath(realPath) {
@@ -16,7 +17,7 @@ router.get('/', async (req, res) => {
   const { page = 1, limit = 10 } = req.query;
   try {
     const charactersData = await CharacterModel.find()
-      .select('-author')
+      .select(['-author', '-comments'])
       .limit(limit * 1)
       .skip((page - 1) * limit)
       .sort({ published: -1 })
@@ -41,7 +42,10 @@ router.get('/', async (req, res) => {
 router.get('/:id', async (req, res) => {
   const characterId = req.params.id;
   try {
-    const character = await CharacterModel.findById(characterId);
+    const character = await CharacterModel.findById(characterId)
+      .select('-_id')
+      .populate('comments')
+      .lean();
     if (!character) {
       return res.status(404).json({ message: 'Character not found' });
     }
@@ -92,6 +96,50 @@ router.delete('/:id', async (req, res) => {
       return res.status(200).json({ message: 'Character deleted' });
     }
     return res.status(404).json({ message: 'Character not found' });
+  } catch (error) {
+    return res.status(400).json({ message: error.message });
+  }
+});
+
+router.post('/:id/comments', jsonParser, async (req, res) => {
+  const characterId = req.params.id;
+  const { message } = req.body;
+  try {
+    const character = await CharacterModel.findById(characterId);
+    if (!character) {
+      return res.status(404).json({ message: 'Character not found' });
+    }
+    const comment = new CommentModel({ message });
+    character.comments.push(comment._id);
+    const newComment = await comment.save();
+    await character.save();
+    return res.status(200).json(newComment);
+  } catch (error) {
+    return res.status(400).json({ message: error.message });
+  }
+});
+
+router.delete('/:id/comments/:commentid', jsonParser, async (req, res) => {
+  const articleId = req.params.id;
+  const commentId = req.params.commentid;
+  try {
+    const article = await CharacterModel.findById(articleId);
+    if (!article) {
+      return res.status(404).json({ message: 'Characters not found' });
+    }
+    const found = article.comments.find((element) => element.toString() === commentId);
+    if (!found) {
+      return res.status(404).json({ message: 'Incorrect comment id' });
+    }
+    const updComments = article.comments.filter((item) => item.toString() !== commentId);
+    article.comments = updComments;
+
+    const rc = await CommentModel.deleteOne({ _id: commentId.toString() });
+    if (rc.deletedCount > 0) {
+      await article.save();
+      return res.status(200).json({ message: 'Comment deleted' });
+    }
+    return res.status(404).json({ message: 'Comment not found' });
   } catch (error) {
     return res.status(400).json({ message: error.message });
   }

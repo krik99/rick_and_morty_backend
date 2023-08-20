@@ -25,3 +25,9 @@ Method | Request | Description
 **POST** | **/v1/characters** | publish new character. Character object transmiting in body request
 **PUT** | **/v1/characters/<character_id>** | edit the single character with <character_id>. Character object transmiting in body request
 **DELET** | **/v1/characters/<character_id>** | delet the single character with <character_id>
+
+Comments
+Method | Request | Description
+--- | --- | ---
+**POST** | **/v1/characters/<character_id>/comments** | publish comment to specified character. Comment message transmiting in body reauest {"message":"Some comment..."}
+**DELETE** | **/v1/characters/<character_id>/comments/<comment_id>** | delete comment from character with specified id
