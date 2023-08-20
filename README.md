@@ -21,7 +21,7 @@ Method | Request | Description
 --- | --- | ---
 **GET** | **/v1/characters** | get all characters sorted by published date (by default characters list is limited to 10 items)
 **GET** | **/v1/characters?page=2&limit=20** | get all characters sorted by published date (on page 2 with 20 items limit)
-**GET** | **/v1/articles/<character_id>** | get the single character with <character_id>
+**GET** | **/v1/characters/<character_id>** | get the single character with <character_id>
 **POST** | **/v1/characters** | publish new character. Character object transmiting in body request
 **PUT** | **/v1/characters/<character_id>** | edit the single character with <character_id>. Character object transmiting in body request
 **DELET** | **/v1/characters/<character_id>** | delet the single character with <character_id>

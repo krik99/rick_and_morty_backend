@@ -13,22 +13,31 @@ function fixImgPath(realPath) {
   return `${imgPath}/${realPath}`;
 }
 
+function charactersApplyShortFormat(articles) {
+  return articles.map((el) => {
+    const { ...rest } = el;
+    // reduce size for description
+    const descr = rest.description.slice(0, 100);
+    const lastWhiteSpace = descr.lastIndexOf(' ');
+    rest.description = descr.slice(0, lastWhiteSpace);
+    // modify path
+    rest.img = fixImgPath(rest.img);
+    return rest;
+  });
+}
+
 router.get('/', async (req, res) => {
   const { page = 1, limit = 10 } = req.query;
   try {
     const charactersData = await CharacterModel.find()
-      .select(['-author', '-comments'])
+      .select(['-author', '-content', '-comments'])
       .limit(limit * 1)
       .skip((page - 1) * limit)
       .sort({ published: -1 })
       .lean();
     const count = await CharacterModel.countDocuments();
 
-    const characters = charactersData.map((el) => {
-      const character = { ...el };
-      character.img = fixImgPath(character.img);
-      return character;
-    });
+    const characters = charactersApplyShortFormat(charactersData);
     return res.status(200).json({
       characters,
       pages: Math.ceil(count / limit),
