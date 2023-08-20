@@ -27,6 +27,11 @@ Method | Request | Description
 **PUT** | **/v1/characters/<character_id>** | edit the single character with <character_id>. Character object transmiting in body request
 **DELET** | **/v1/characters/<character_id>** | delet the single character with <character_id>
 
+Categories
+Method | Request | Description
+--- | --- | ---
+**GET** | **/v1/characters/categories** | get all possible character categories
+
 Comments
 Method | Request | Description
 --- | --- | ---

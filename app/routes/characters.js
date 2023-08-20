@@ -27,7 +27,24 @@ function charactersApplyShortFormat(articles) {
 }
 
 router.get('/', async (req, res) => {
-  const { page = 1, limit = 10, id } = req.query;
+  const {
+    page = 1, limit = 10, id, status, species, gender, planet,
+  } = req.query;
+
+  const filter = {};
+  if (status) {
+    filter.status = status;
+  }
+  if (species) {
+    filter.species = species;
+  }
+  if (gender) {
+    filter.gender = gender;
+  }
+  if (planet) {
+    filter.planet = planet;
+  }
+
   let charactersData = null;
   let count = 0;
   try {
@@ -40,13 +57,13 @@ router.get('/', async (req, res) => {
         .lean();
       count = charactersData.length;
     } else {
-      charactersData = await CharacterModel.find()
+      charactersData = await CharacterModel.find(filter)
         .select(['-author', '-content', '-comments'])
         .limit(limit * 1)
         .skip((page - 1) * limit)
         .sort({ published: -1 })
         .lean();
-      count = await CharacterModel.countDocuments();
+      count = await CharacterModel.countDocuments(filter);
     }
 
     const characters = charactersApplyShortFormat(charactersData);
@@ -55,6 +72,26 @@ router.get('/', async (req, res) => {
       pages: Math.ceil(count / limit),
       page: parseInt(page, 10),
     });
+  } catch (error) {
+    return res.status(500).json({ message: error.message });
+  }
+});
+
+router.get('/categories', async (req, res) => {
+  try {
+    const uniqCategories = await CharacterModel.aggregate([
+      {
+        $group: {
+          _id: null,
+          status: { $addToSet: '$status' },
+          species: { $addToSet: '$species' },
+          gender: { $addToSet: '$gender' },
+          planet: { $addToSet: '$planet' },
+        },
+      },
+    ]);
+    const { _id, ...categories } = uniqCategories[0];
+    return res.status(200).json(categories);
   } catch (error) {
     return res.status(500).json({ message: error.message });
   }
