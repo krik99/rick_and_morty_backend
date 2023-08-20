@@ -13,17 +13,26 @@ function fixImgPath(realPath) {
 }
 
 router.get('/', async (req, res) => {
+  const { page = 1, limit = 10 } = req.query;
   try {
     const charactersData = await CharacterModel.find()
       .select('-author')
+      .limit(limit * 1)
+      .skip((page - 1) * limit)
       .sort({ published: -1 })
       .lean();
+    const count = await CharacterModel.countDocuments();
+
     const characters = charactersData.map((el) => {
       const character = { ...el };
       character.img = fixImgPath(character.img);
       return character;
     });
-    return res.status(200).json({ ...characters });
+    return res.status(200).json({
+      characters,
+      pages: Math.ceil(count / limit),
+      page: parseInt(page, 10),
+    });
   } catch (error) {
     return res.status(500).json({ message: error.message });
   }
