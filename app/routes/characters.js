@@ -7,31 +7,14 @@ const jsonParser = bodyParser.json();
 
 const CharacterModel = require('../models/character');
 const CommentModel = require('../models/comment');
-const { imgPath } = require('../database/filestorage');
-
-function fixImgPath(realPath) {
-  return `${imgPath}/${realPath}`;
-}
-
-function charactersApplyShortFormat(articles) {
-  return articles.map((el) => {
-    const { ...rest } = el;
-    // reduce size for description
-    const descr = rest.description.slice(0, 100);
-    const lastWhiteSpace = descr.lastIndexOf(' ');
-    rest.description = descr.slice(0, lastWhiteSpace);
-    // modify path
-    rest.img = fixImgPath(rest.img);
-    return rest;
-  });
-}
+const { getArticles, fixImgPath } = require('../controllers/articles');
 
 router.get('/', async (req, res) => {
   const {
-    page = 1, limit = 10, id, status, species, gender, planet,
+    status, species, gender, planet,
   } = req.query;
 
-  const filter = {};
+  const filter = { };
   if (status) {
     filter.status = status;
   }
@@ -45,32 +28,15 @@ router.get('/', async (req, res) => {
     filter.planet = planet;
   }
 
-  let charactersData = null;
-  let count = 0;
   try {
-    if (id) {
-      const ids = id.split(',');
-      charactersData = await CharacterModel.find()
-        .where('_id').in(ids)
-        .select(['-author', '-content', '-comments'])
-        .sort({ published: -1 })
-        .lean();
-      count = charactersData.length;
-    } else {
-      charactersData = await CharacterModel.find(filter)
-        .select(['-author', '-content', '-comments'])
-        .limit(limit * 1)
-        .skip((page - 1) * limit)
-        .sort({ published: -1 })
-        .lean();
-      count = await CharacterModel.countDocuments(filter);
-    }
+    const {
+      articles, page, pages,
+    } = await getArticles(req, CharacterModel, filter);
 
-    const characters = charactersApplyShortFormat(charactersData);
     return res.status(200).json({
-      characters,
-      pages: Math.ceil(count / limit),
-      page: parseInt(page, 10),
+      characters: articles,
+      pages,
+      page,
     });
   } catch (error) {
     return res.status(500).json({ message: error.message });
@@ -102,7 +68,7 @@ router.get('/:id', async (req, res) => {
   try {
     const character = await CharacterModel.findById(characterId)
       .select('-_id')
-      .populate('comments')
+      .populate({ path: 'comments', options: { sort: { published: -1 } } })
       .lean();
     if (!character) {
       return res.status(404).json({ message: 'Character not found' });

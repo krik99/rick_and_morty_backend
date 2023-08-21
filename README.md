@@ -25,12 +25,24 @@ Method | Request | Description
 **GET** | **/v1/characters?id=<article_id1>,<article_id2>,...** | get characters with specified ids
 **POST** | **/v1/characters** | publish new character. Character object transmiting in body request
 **PUT** | **/v1/characters/<character_id>** | edit the single character with <character_id>. Character object transmiting in body request
-**DELET** | **/v1/characters/<character_id>** | delet the single character with <character_id>
+**DELETE** | **/v1/characters/<character_id>** | delet the single character with <character_id>
+
+Locations API
+Method | Request | Description
+--- | --- | ---
+**GET** | **/v1/locations** | get all locations sorted by published date (by default locations list is limited to 10 items)
+**GET** | **/v1/locations?page=2&limit=20** | get all locations sorted by published date (on page 2 with 20 items limit)
+**GET** | **/v1/locations/<location_id>** | get the single location with <location_id>
+**GET** | **/v1/locations?id=<location_id>,<location_id>,...** | get locations with specified ids
+**POST** | **/v1/locations** | publish new location. Location object transmiting in body request
+**PUT** | **/v1/locations/<location_id>** | edit the single location with <location_id>. Location object transmiting in body request
+**DELETE** | **/v1/locations/<location_id>** | delet the single location with <location_id>
 
 Categories
 Method | Request | Description
 --- | --- | ---
 **GET** | **/v1/characters/categories** | get all possible character categories
+**GET** | **/v1/locations/categories** | get all possible location categories
 
 Comments
 Method | Request | Description
